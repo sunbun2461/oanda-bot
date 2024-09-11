@@ -1,0 +1,11 @@
+# Ignore virtual environment folder
+oanda_bot_env/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+.DS Store
+backtesting_results/
+historical_data/
+cleaned_data/
+.DS_Store
