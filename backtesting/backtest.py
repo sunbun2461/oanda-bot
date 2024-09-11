@@ -117,15 +117,15 @@ def run_backtest(instrument, data, atr_multiplier=1.5, stop_loss_atr=1.0, candle
             position, balance, daily_loss, total_profit, total_loss, profit_trades, loss_trades, result, exit_price = manage_trade(
                 position, row, balance, daily_loss, total_profit, total_loss, profit_trades, loss_trades
             )
-            if result and position:
+            if result:
                 trades.append({
                     'time': row['time'],
                     'type': 'sell',
                     'result': result,
-                    'entry_price': position['entry_price'],
+                    'entry_price': position['entry_price'] if position else None,
                     'exit_price': exit_price,
-                    'profit_loss': balance,
-                    'position_size': position['position_size']
+                    'profit_loss': total_profit - total_loss,
+                    'position_size': position['position_size'] if position else None
                 })
 
     # Calculate final statistics
@@ -144,15 +144,21 @@ def run_backtest(instrument, data, atr_multiplier=1.5, stop_loss_atr=1.0, candle
     print(f"Win Rate: {win_rate:.2f}%")
     print(f"Loss Rate: {loss_rate:.2f}%")
 
+    # Append summary stats to the trades list
     trades.append({
-        'summary': {
-            'final_balance': f"{balance:.2f}",
-            'total_profit': f"{total_profit:.2f}",
-            'total_loss': f"{total_loss:.2f}",
-            'num_trades': num_trades,
-            'win_rate': f"{win_rate:.2f}%",
-            'loss_rate': f"{loss_rate:.2f}%"
-        }
+        'time': 'summary',
+        'type': '',
+        'result': '',
+        'entry_price': '',
+        'exit_price': '',
+        'profit_loss': '',
+        'position_size': '',
+        'final_balance': f"{balance:.2f}",
+        'total_profit': f"{total_profit:.2f}",
+        'total_loss': f"{total_loss:.2f}",
+        'num_trades': num_trades,
+        'win_rate': f"{win_rate:.2f}%",
+        'loss_rate': f"{loss_rate:.2f}%"
     })
 
     return trades
