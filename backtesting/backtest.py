@@ -3,14 +3,14 @@ import os
 from datetime import datetime
 
 # Set the number of candles to limit in the backtest
-CANDLE_LIMIT = 5000  # Adjust this value to limit the number of candles processed
+CANDLE_LIMIT = 15000  # Adjust this value to limit the number of candles processed
 
 # Choose whether to use EMA or SMA
 USE_EMA = True  # Set to True for EMA or False for SMA
 
 # ATR-related variables
-ATR_MULTIPLIER = 6.5  # Set the ATR multiplier for take-profit
-STOP_LOSS_ATR = 0.5   # Set the ATR multiplier for stop-loss
+ATR_MULTIPLIER = 1.5  # Set the ATR multiplier for take-profit
+STOP_LOSS_ATR = .5   # Set the ATR multiplier for stop-loss
 
 # Initial balance for the backtest
 INITIAL_BALANCE = 25000  # Set the initial balance for the backtest
