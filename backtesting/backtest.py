@@ -8,17 +8,24 @@ CANDLE_LIMIT = 5000  # Adjust this value to limit the number of candles processe
 # Choose whether to use EMA or SMA
 USE_EMA = True  # Set to True for EMA or False for SMA
 
+# ATR-related variables
+ATR_MULTIPLIER = 6.5  # Set the ATR multiplier for take-profit
+STOP_LOSS_ATR = 0.5   # Set the ATR multiplier for stop-loss
+
+# Initial balance for the backtest
+INITIAL_BALANCE = 25000  # Set the initial balance for the backtest
+
 # Function to calculate position size
 def calculate_position_size(balance, trade_loss_limit, entry_price, stop_loss):
     risk_per_trade = balance * trade_loss_limit
     stop_loss_distance = entry_price - stop_loss
     return risk_per_trade / stop_loss_distance
 
-# Function to enter a trade
-def enter_trade(row, balance, trade_loss_limit, atr_multiplier=1.5, stop_loss_atr=1.0):
+# Function to enter a trade with ATR multiplier and stop loss ATR as parameters
+def enter_trade(row, balance, trade_loss_limit):
     entry_price = row['close']
-    stop_loss = entry_price - row['ATR'] * stop_loss_atr
-    take_profit = entry_price + row['ATR'] * atr_multiplier
+    stop_loss = entry_price - row['ATR'] * STOP_LOSS_ATR
+    take_profit = entry_price + row['ATR'] * ATR_MULTIPLIER
 
     # Calculate position size
     position_size = calculate_position_size(balance, trade_loss_limit, entry_price, stop_loss)
@@ -55,21 +62,21 @@ def manage_trade(position, row, balance, daily_loss, total_profit, total_loss, p
 # Function to calculate moving averages
 def add_moving_averages(data, use_ema=False):
     if use_ema:
+        data['EMA_20'] = data['close'].ewm(span=20, adjust=False).mean()
         data['EMA_50'] = data['close'].ewm(span=50, adjust=False).mean()
-        data['EMA_200'] = data['close'].ewm(span=200, adjust=False).mean()
     else:
+        data['SMA_20'] = data['close'].rolling(window=20).mean()
         data['SMA_50'] = data['close'].rolling(window=50).mean()
-        data['SMA_200'] = data['close'].rolling(window=200).mean()
     return data
 
-# Function to run the backtest with an optional candle limit and choice of moving averages
-def run_backtest(instrument, data, atr_multiplier=1.5, stop_loss_atr=1.0, candle_limit=None, use_ema=False):
+# Function to run the backtest
+def run_backtest(instrument, data, candle_limit=None, use_ema=False):
     trades = []
     position = None
-    balance = 10000
+    balance = INITIAL_BALANCE
     daily_loss = 0
     max_daily_loss = 0.06
-    trade_loss_limit = 0.002
+    trade_loss_limit = 0.005
     current_date = None
     total_profit = 0
     total_loss = 0
@@ -102,14 +109,14 @@ def run_backtest(instrument, data, atr_multiplier=1.5, stop_loss_atr=1.0, candle
             print(f"Max daily loss reached for {instrument} on {current_date}. Skipping to the next day.")
             continue
 
-        # Entry condition: 50 MA crosses above 200 MA and RSI is below 70
+        # Entry condition: 20 EMA crosses above 50 EMA and RSI is below 70
         if use_ema:
-            ma_50_above_ma_200 = row['EMA_50'] > row['EMA_200']
+            ma_20_above_ma_50 = row['EMA_20'] > row['EMA_50']
         else:
-            ma_50_above_ma_200 = row['SMA_50'] > row['SMA_200']
+            ma_20_above_ma_50 = row['SMA_20'] > row['SMA_50']
 
-        if position is None and ma_50_above_ma_200 and row['RSI'] < 70:
-            position = enter_trade(row, balance, trade_loss_limit, atr_multiplier, stop_loss_atr)
+        if position is None and ma_20_above_ma_50 and row['RSI'] < 70:
+            position = enter_trade(row, balance, trade_loss_limit)
             print(f"Entering trade on {instrument} at {position['entry_price']} with position size {position['position_size']}")
 
         # Manage open position
@@ -125,17 +132,18 @@ def run_backtest(instrument, data, atr_multiplier=1.5, stop_loss_atr=1.0, candle
                     'entry_price': position['entry_price'] if position else None,
                     'exit_price': exit_price,
                     'profit_loss': total_profit - total_loss,
-                    'position_size': position['position_size'] if position else None
+                    'position_size': position['position_size'] if position else None,
+                    'balance': balance
                 })
 
     # Calculate final statistics
     win_rate = (profit_trades / num_trades) * 100 if num_trades > 0 else 0
     loss_rate = (loss_trades / num_trades) * 100 if num_trades > 0 else 0
-    total_return = balance - 10000
+    total_return = balance - INITIAL_BALANCE
 
     print("\n---- Backtest Summary ----")
     print(f"Instrument: {instrument}")
-    print(f"Initial balance: $10,000")
+    print(f"Initial balance: ${INITIAL_BALANCE:.2f}")
     print(f"Final balance: ${balance:.2f}")
     print(f"Total Profit: ${total_profit:.2f}")
     print(f"Total Loss: ${total_loss:.2f}")
@@ -153,7 +161,7 @@ def run_backtest(instrument, data, atr_multiplier=1.5, stop_loss_atr=1.0, candle
         'exit_price': '',
         'profit_loss': '',
         'position_size': '',
-        'final_balance': f"{balance:.2f}",
+        'balance': f"{balance:.2f}",
         'total_profit': f"{total_profit:.2f}",
         'total_loss': f"{total_loss:.2f}",
         'num_trades': num_trades,
@@ -209,7 +217,7 @@ input_dir = 'cleaned_data/'
 output_base_dir = 'backtesting_results/'
 
 # Example: Run backtest on all pairs with a limit set by CANDLE_LIMIT
-backtest_instruments(input_dir, output_base_dir)
+# backtest_instruments(input_dir, output_base_dir)
 
 # Example: Run backtest on a specific pair (e.g., 'EUR_USD')
-# backtest_instruments(input_dir, output_base_dir, pair='EUR_USD')
+backtest_instruments(input_dir, output_base_dir, pair='EUR_USD')
