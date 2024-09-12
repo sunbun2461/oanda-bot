@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 # Set the number of candles to limit in the backtest
-CANDLE_LIMIT = 15000  # Adjust this value to limit the number of candles processed
+CANDLE_LIMIT = 100000  # Adjust this value to limit the number of candles processed
 
 # Choose whether to use EMA or SMA
 USE_EMA = True  # Set to True for EMA or False for SMA
@@ -14,7 +14,7 @@ STOP_LOSS_ATR = .5   # Set the ATR multiplier for stop-loss
 
 # Initial balance for the backtest
 INITIAL_BALANCE = 25000  # Set the initial balance for the backtest
-PAIR_NAME = 'AUD_USD'  # Set the pair name for the backtest
+PAIR_NAME = 'EUR_USD'  # Set the pair name for the backtest
 
 # Function to calculate position size
 def calculate_position_size(balance, trade_loss_limit, entry_price, stop_loss):
