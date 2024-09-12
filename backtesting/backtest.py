@@ -14,6 +14,7 @@ STOP_LOSS_ATR = .5   # Set the ATR multiplier for stop-loss
 
 # Initial balance for the backtest
 INITIAL_BALANCE = 25000  # Set the initial balance for the backtest
+PAIR_NAME = 'AUD_USD'  # Set the pair name for the backtest
 
 # Function to calculate position size
 def calculate_position_size(balance, trade_loss_limit, entry_price, stop_loss):
@@ -219,5 +220,5 @@ output_base_dir = 'backtesting_results/'
 # Example: Run backtest on all pairs with a limit set by CANDLE_LIMIT
 # backtest_instruments(input_dir, output_base_dir)
 
-# Example: Run backtest on a specific pair (e.g., 'EUR_USD')
-backtest_instruments(input_dir, output_base_dir, pair='EUR_USD')
+# Example: Run backtest on a specific pair
+backtest_instruments(input_dir, output_base_dir, pair=PAIR_NAME)
