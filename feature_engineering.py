@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 # Function to calculate moving averages (SMA and EMA)
-def add_moving_averages(df, sma_periods=[20, 50], ema_periods=[5, 9, 20]):
+def add_moving_averages(df, sma_periods=[20, 50, 200], ema_periods=[5, 9, 20, 50, 200]):
     # Calculate SMAs for given periods
     for period in sma_periods:
         df[f'SMA_{period}'] = df['close'].rolling(window=period).mean()
