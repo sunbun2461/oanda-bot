@@ -1,0 +1,131 @@
+** Hi Freq Bot ** OANDA
+
+•	Step 1: Test real-time data fetching (already in progress).
+•	Step 2: Introduce historical data fetching for technical analysis.
+•	Step 3: Add order execution (market orders).
+•	Step 4: Implement risk management (stop-loss, take-profit).
+•	Step 5: Evaluate trading strategies and logic (implement crossover strategies, etc.).
+•	Step 6: Deploy and run the bot continuously (monitoring for performance and reliability).
+
+
+
+in case mfa runs out send text message (how often will that happen?) - also current P/L would be nice.
+
+•	Data Cleaning and Preparation
+•	Feature Engineering: Technical Indicators
+•	Backtesting Environment
+  Once the backtesting system works, we’ll implement the strategy:
+
+  	•	50 MA / 200 MA (on 5-minute candles) for buy signals.
+  	•	1x ATR stop-loss and 1.5x ATR take-profit.
+  	•	RSI filter (only buy if RSI is below 70).
+  	•	Risk management: 0.2% loss per trade, 6% total daily loss.
+
+
+
+• how many candles to test in total
+•
+•
+•
+•
+
+
+from PJW-91 - mci
+
+
+export const tabs = function () {
+  document.addEventListener('DOMContentLoaded', function () {
+    // Select all tab interfaces on the page
+    const tabInterfaces = document.querySelectorAll('.vertical-tabs');
+
+    tabInterfaces.forEach(tabInterface => {
+      // Tab state management scoped to each tab interface
+      const tabState = {};
+      const tabItems = tabInterface.querySelectorAll('[data-tab="item"]');
+      const contentItems = tabInterface.querySelectorAll('[data-tab="content"]');
+
+      tabItems.forEach((tabItem, index) => {
+        const dataId = index.toString();  // Generate dynamic data-id based on index
+        tabItem.setAttribute('data-id', dataId);
+
+        const contentItem = contentItems[index];
+        if (contentItem) {
+          contentItem.setAttribute('data-id-target', dataId);
+          tabState[dataId] = contentItem;
+        }
+      });
+
+      console.log('Tab State:', tabState);
+
+      tabItems.forEach(tabItem => {
+        tabItem.addEventListener('click', () => {
+          contentItems.forEach(item => item.classList.remove('active'));
+          tabItems.forEach(item => item.classList.remove('active'));
+
+          tabItem.classList.add('active');
+          const dataId = tabItem.getAttribute('data-id');
+          if (tabState[dataId]) {
+            tabState[dataId].classList.add('active');
+          }
+        });
+      });
+    });
+  });
+
+
+}
+
+
+
+
+
+It sounds like you have a strong sense of direction for your trading strategy, but also some specific steps you'd like to take in getting the project organized. Here's a clear path forward based on your goals:
+
+### 1. **Data Cleaning and Preparation**
+   Before jumping into strategy development, you'll want to make sure your dataset is in top shape. Here’s what needs to happen:
+
+   - **Remove duplicates:** Ensure that there are no duplicated rows of candles in your CSV files.
+   - **Handle missing data:** Fill or interpolate missing OHLCV (Open, High, Low, Close, Volume) values, if any, although you likely won’t have many gaps with 5-minute candles.
+   - **Sanitize timestamps:** Ensure that timestamps are uniformly formatted and don't have gaps (e.g., skipping a few candles if there were no trades during that time).
+
+   We can write a script to go through your CSVs and handle this. Once cleaned, the data can either be:
+   - Stored back in the CSV format (if that works for you)
+   - Imported into a database (which might be better for fast querying and backtesting multiple strategies)
+
+### 2. **Feature Engineering: Technical Indicators and Calculations**
+   You’ll want to calculate the following indicators:
+   - **Moving Averages (SMA and EMA):** Calculate both simple and exponential moving averages for multiple periods (e.g., 50-period, 200-period).
+   - **ATR (Average True Range):** For volatility-based strategies.
+   - **Support and Resistance Levels:** Using historical high/low prices.
+   - **RSI (Relative Strength Index):** For momentum and overbought/oversold signals.
+   - **Volume Analysis:** This could involve simple metrics like cumulative volume or more advanced calculations like Volume Weighted Average Price (VWAP).
+
+   We can use libraries like `ta-lib` or `pandas` for calculating these indicators dynamically within your backtest.
+
+### 3. **Backtesting Environment**
+   Given your strategy, here’s how you might want to structure the backtest:
+
+   - **Simple Moving Average + RSI Strategy:** This involves:
+     - **Entry:** When a short-term moving average crosses above a long-term moving average (e.g., 50-period crossing above the 200-period).
+     - **Exit:** Either when the crossover reverses or RSI hits overbought/oversold zones.
+   - **Stop-loss & take-profit:** Use ATR for setting stop losses (e.g., 1:1 risk/reward ratio).
+   - **Max Daily Loss:** Implement a max daily loss of 6% for total risk management, ensuring the strategy halts after exceeding that limit.
+   - **Cutoff after X candles:** Set a trade cutoff after a specific number of candles (30 trades/day divided by available 5-minute candles).
+
+   The idea is to simulate trades but only record outcomes, not actually place them.
+
+### 4. **Logging Trades for Simulation**
+   You’ll want a place to store simulation data. The plan could include:
+   - **Directory Setup:** Create a "trade_logs" directory where each run of your backtest is saved as a CSV or in a more robust format (e.g., SQLite).
+   - **Logged Fields:** Trade entry/exit points, timestamps, trade size, and P&L (Profit & Loss).
+   - **Flexible Configurations:** Add flags for trailing stops, different ATR setups, etc., for future flexibility.
+
+### 5. **Next Steps Breakdown**
+Here’s what we can do next:
+1. **Data Cleaning Script:** A Python script to clean your CSVs (remove duplicates, fill missing data, sanitize timestamps).
+2. **Indicator Calculation:** Develop a feature-engineering script for calculating moving averages, RSI, ATR, etc., for the cleaned data.
+3. **Backtest Framework:** Implement the logic for your moving average/RSI strategy, including the trade cutoff rules and max daily loss.
+4. **Logging Setup:** Design a system for saving simulation results in a clear, repeatable way.
+5. **Backtesting Automation:** You could automate the entire process for testing multiple instruments (like your 8 million candles) across different strategies.
+
+We can start with the data cleaning and preprocessing, and once that’s solid, move to indicator calculations and strategy backtesting. Does that sound good?
